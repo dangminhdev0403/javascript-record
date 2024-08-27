@@ -1,16 +1,16 @@
 const searchForm = document.querySelector("#search-form");
-const searchFormInput = searchForm.querySelector("input");
+const searchFormInput = searchForm.querySelector("input"); // <=> document.querySelector("#search-form input");
 const info = document.querySelector(".info");
 
-// Kiểm tra xem trình duyệt có hỗ trợ SpeechRecognition không
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+// The speech recognition interface lives on the browser’s window object
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; // if none exists -> undefined
 
-if (SpeechRecognition) {
-  console.log("Trình duyệt của bạn hỗ trợ nhận diện giọng nói");
-
+if(SpeechRecognition) {
+  console.log("Your Browser supports speech Recognition");
+  
   const recognition = new SpeechRecognition();
   recognition.continuous = true;
-  recognition.interimResults = true; // Cho phép nhận diện kết quả tạm thời
+  // recognition.lang = "en-US";
 
   searchForm.insertAdjacentHTML("beforeend", '<button type="button"><i class="fas fa-microphone"></i></button>');
   searchFormInput.style.paddingRight = "50px";
@@ -18,38 +18,65 @@ if (SpeechRecognition) {
   const micBtn = searchForm.querySelector("button");
   const micIcon = micBtn.firstElementChild;
 
-  micBtn.addEventListener("click", () => {
-    if (micIcon.classList.contains("fa-microphone")) {
-      recognition.start(); // Bắt đầu nhận diện giọng nói
-    } else {
-      recognition.stop(); // Dừng nhận diện giọng nói
+  micBtn.addEventListener("click", micBtnClick);
+  function micBtnClick() {
+    if(micIcon.classList.contains("fa-microphone")) { // Start Voice Recognition
+      recognition.start(); // First time you have to allow access to mic!
     }
-  });
+    else {
+      recognition.stop();
+    }
+  }
 
-  recognition.addEventListener("start", () => {
+  recognition.addEventListener("start", startSpeechRecognition); // <=> recognition.onstart = function() {...}
+  function startSpeechRecognition() {
     micIcon.classList.remove("fa-microphone");
     micIcon.classList.add("fa-microphone-slash");
     searchFormInput.focus();
-    console.log("Nhận diện giọng nói đã kích hoạt, NÓI");
-  });
+    console.log("Voice activated, SPEAK");
+  }
 
-  recognition.addEventListener("end", () => {
+  recognition.addEventListener("end", endSpeechRecognition); // <=> recognition.onend = function() {...}
+  function endSpeechRecognition() {
     micIcon.classList.remove("fa-microphone-slash");
     micIcon.classList.add("fa-microphone");
     searchFormInput.focus();
-    console.log("Dịch vụ nhận diện giọng nói đã ngắt kết nối");
-  });
+    console.log("Speech recognition service disconnected");
+  }
 
-  recognition.addEventListener("result", (event) => {
-    let transcript = '';
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      transcript += event.results[i][0].transcript;
+  recognition.addEventListener("result", resultOfSpeechRecognition); // <=> recognition.onresult = function(event) {...} - Fires when you stop talking
+  function resultOfSpeechRecognition(event) {
+    const current = event.resultIndex;
+    const transcript = event.results[current][0].transcript;
+    
+    if(transcript.toLowerCase().trim()==="stop recording") {
+      recognition.stop();
     }
-    searchFormInput.value = transcript; // Cập nhật giá trị trường nhập liệu với kết quả
-  });
-
- 
-} else {
-  console.log("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói");
-  info.textContent = "Trình duyệt của bạn không hỗ trợ nhận diện giọng nói";
+    else if(!searchFormInput.value) {
+      searchFormInput.value = transcript;
+    }
+    else {
+      if(transcript.toLowerCase().trim()==="go") {
+        searchForm.submit();
+      }
+      else if(transcript.toLowerCase().trim()==="reset input") {
+        searchFormInput.value = "";
+      }
+      else {
+        searchFormInput.value = transcript;
+      }
+    }
+    // searchFormInput.value = transcript;
+    // searchFormInput.focus();
+    // setTimeout(() => {
+    //   searchForm.submit();
+    // }, 500);
+  }
+  
+  info.textContent = 'Voice Commands: "stop recording", "reset input", "go"';
+  
+}
+else {
+  console.log("Your Browser does not support speech Recognition");
+  info.textContent = "Your Browser does not support Speech Recognition";
 }
