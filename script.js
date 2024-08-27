@@ -1,68 +1,55 @@
+const searchForm = document.querySelector("#search-form");
+const searchFormInput = searchForm.querySelector("input");
+const info = document.querySelector(".info");
 
-      window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+// Kiểm tra xem trình duyệt có hỗ trợ SpeechRecognition không
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-      const recognition = new SpeechRecognition();
-      recognition.interimResults = true;
-      recognition.continuous = true; // Đảm bảo ghi âm liên tục
+if (SpeechRecognition) {
+  console.log("Trình duyệt của bạn hỗ trợ nhận diện giọng nói");
 
-      let p = document.createElement('p');
-      const records = document.querySelector('.records');
-      records.appendChild(p);
+  const recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true; // Cho phép nhận diện kết quả tạm thời
 
-      let inactivityTimeout;
+  searchForm.insertAdjacentHTML("beforeend", '<button type="button"><i class="fas fa-microphone"></i></button>');
+  searchFormInput.style.paddingRight = "50px";
 
-      const startRecognition = () => {
-        recognition.start();
-        console.log('Đã bắt đầu ghi âm');
-        
-        // Thiết lập thời gian chờ để tự động dừng ghi âm nếu không có âm thanh trong 10 giây
-        inactivityTimeout = setTimeout(() => {
-          recognition.stop();
-          console.log('Đã dừng ghi âm do không có âm thanh');
-        }, 10000); // 10000 ms = 10 giây
-      };
+  const micBtn = searchForm.querySelector("button");
+  const micIcon = micBtn.firstElementChild;
 
-      const stopRecognition = () => {
-        recognition.stop();
-        console.log('Đã dừng ghi âm');
-        
-        // Xóa thời gian chờ khi dừng ghi âm thủ công
-        clearTimeout(inactivityTimeout);
-      };
+  micBtn.addEventListener("click", () => {
+    if (micIcon.classList.contains("fa-microphone")) {
+      recognition.start(); // Bắt đầu nhận diện giọng nói
+    } else {
+      recognition.stop(); // Dừng nhận diện giọng nói
+    }
+  });
 
-      recognition.addEventListener('result', e => {
-        const transcript = Array.from(e.results)
-          .map(result => result[0])
-          .map(result => result.transcript)
-          .join('');
-        
-        p.textContent = transcript;
+  recognition.addEventListener("start", () => {
+    micIcon.classList.remove("fa-microphone");
+    micIcon.classList.add("fa-microphone-slash");
+    searchFormInput.focus();
+    console.log("Nhận diện giọng nói đã kích hoạt, NÓI");
+  });
 
-        if (e.results[0].isFinal) {
-          p = document.createElement('p');
-          records.appendChild(p);
-        }
+  recognition.addEventListener("end", () => {
+    micIcon.classList.remove("fa-microphone-slash");
+    micIcon.classList.add("fa-microphone");
+    searchFormInput.focus();
+    console.log("Dịch vụ nhận diện giọng nói đã ngắt kết nối");
+  });
 
-        // Xóa thời gian chờ khi có kết quả
-        clearTimeout(inactivityTimeout);
+  recognition.addEventListener("result", (event) => {
+    let transcript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript;
+    }
+    searchFormInput.value = transcript; // Cập nhật giá trị trường nhập liệu với kết quả
+  });
 
-        // Thiết lập lại thời gian chờ để tự động dừng ghi âm nếu không có âm thanh trong 10 giây
-        inactivityTimeout = setTimeout(() => {
-          recognition.stop();
-          console.log('Đã dừng ghi âm do không có âm thanh');
-        }, 5000); // 10000 ms = 10 giây
-      });
-
-      recognition.addEventListener('end', () => {
-        console.log('Ghi âm kết thúc');
-        // Nếu cần, có thể tự động bắt đầu lại ghi âm
-        // recognition.start();
-      });
-
-      // Bắt đầu ghi âm khi nhấn nút Bắt đầu ghi âm
-      const startButton = document.getElementById('startRecordButton');
-      startButton.addEventListener('click', startRecognition);
-
-      // Xử lý khi nhấn nút Tắt ghi âm
-      const stopButton = document.getElementById('stopRecordButton');
-      stopButton.addEventListener('click', stopRecognition);
+ 
+} else {
+  console.log("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói");
+  info.textContent = "Trình duyệt của bạn không hỗ trợ nhận diện giọng nói";
+}

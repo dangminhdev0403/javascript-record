@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Speech Recognition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Document</title>
 </head>
 <body>
-    <div class="records" ></div>
-    <button id="startRecordButton">Bắt đầu ghi âm</button>
-    <button id="stopRecordButton">Tắt ghi âm</button>
-
-   <script src="./script.js"></script>
+    <div class="container">
+        <form action="https://www.google.com/search" method="get" target="_blank" id="search-form">
+          <input name="q" type="text" placeholder="Search Google..." autocomplete="off" autofocus>
+          <!-- <button type="button"><i class="fas fa-microphone"></i></button> -->
+        </form>
+        <p class="info"></p>
+      </div>
+      <script src="./script.js"></script>
 </body>
 </html>
